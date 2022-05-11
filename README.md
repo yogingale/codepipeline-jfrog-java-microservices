@@ -1,5 +1,16 @@
-# How it works
+# Configurations
 
-Any change at given repositories will trigger a build for all of the repositories. The CodeBuild process will only scan the repositories.
+Set below envrionment variables for terraform
+
+export AWS_ACCESS_KEY_ID="anaccesskey"
+export AWS_SECRET_ACCESS_KEY="asecretkey"
+export AWS_REGION="us-east-1"
+
+# Install
+
+- terraform init
+- terraform plan
+- terraform apply
+
 
 

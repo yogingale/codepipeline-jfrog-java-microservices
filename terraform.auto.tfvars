@@ -1,11 +1,11 @@
 # A unique bucket name
-codepipeline_bucket_name = "codepipeline-libs"
+codepipeline_bucket_name = "codepipeline-jfrog-libs"
 
 # A project name for your CodePipeline
-codepipeline_name = "AB2D-LIBS"
+codepipeline_name = "jfrog-artifactory-uploader"
 
 # A project name for your CodeBuild
-codebuild_project_name = "ab2d-libs-codebuild"
+codebuild_project_name = "jfrog-artifactory-uploader"
 
 env = "dev"
 
@@ -14,12 +14,18 @@ env = "dev"
 # slug is a short name to be used along with CodePipeline
 actions = [
   {
-    repo        = "sb-ebukaanene/SpringChallenge2022",
-    slug        = "contract",
+    repo        = "yogingale/java-microservice-api-gateway",
+    slug        = "microservice1",
     main_branch = "main"
   },
-  { repo        = "sb-ebukaanene/simple-java-maven-app",
-    slug        = "aggregator",
+  {
+    repo        = "yogingale/java-microservice-car-service",
+    slug        = "microservice2",
+    main_branch = "main"
+  },
+  {
+    repo        = "yogingale/java-microservice-discovery-service",
+    slug        = "microservice3",
     main_branch = "main"
   }
 ]
