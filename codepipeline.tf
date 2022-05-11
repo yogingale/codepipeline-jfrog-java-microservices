@@ -33,7 +33,7 @@ resource "aws_codepipeline" "codepipeline" {
   }
 
   stage {
-    name = "Scan"
+    name = "Deploy"
 
     action {
       name             = "Build"
