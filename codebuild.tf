@@ -157,18 +157,23 @@ resource "aws_codebuild_project" "build" {
                       - mvn -version
                   build:
                     commands:
-                      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
-                      - unzip sonar-scanner-cli-3.3.0.1492-linux.zip
-                      - export PATH=$PATH:./sonar-scanner-3.3.0.1492-linux/bin/
-                      - echo "scan command here" 
-                      - cd ../..
-                      - mvn clean verify sonar:sonar -Dsonar.projectKey=ebuka-project-key -Dsonar.host.url=http://3.85.193.21:9000 -Dsonar.login=1458a3c2b1d119b0c86dfd947ffd197497c2f120
-                      - echo "more commands"
-                      - for dir in ${join(" ",[for v in var.actions:  v.slug ])}; do
-                          VAR=CODEBUILD_SRC_DIR_$dir;
-                          DIR=$(eval "echo \"\$$VAR\"");
-                          ls $DIR;
-                        done
+                      # - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
+                      # - unzip sonar-scanner-cli-3.3.0.1492-linux.zip
+                      # - export PATH=$PATH:./sonar-scanner-3.3.0.1492-linux/bin/
+                      # - echo "scan command here"
+                      # - cd ../..
+                      # - mvn clean verify sonar:sonar -Dsonar.projectKey=ebuka-project-key -Dsonar.host.url=http://3.85.193.21:9000 -Dsonar.login=1458a3c2b1d119b0c86dfd947ffd197497c2f120
+                      # - echo "more commands"
+                      # - for dir in ${join(" ",[for v in var.actions:  v.slug ])}; do
+                      #     VAR=CODEBUILD_SRC_DIR_$dir;
+                      #     DIR=$(eval "echo \"\$$VAR\"");
+                      #     ls $DIR;
+                      #   done
+                      - jfrog c add --user admin --password password --url http://54.175.229.83:8081 --artifactory-url http://54.175.229.83:8081/artifactory --interactive false
+                      - jfrog rt ping --url=http://54.175.229.83:8081/artifactory
+                      - mvn compile
+                      - mvn package
+                      - jfrog rt u "*.jar" libs-release-local
                   #post_build:
                     #commands:
                       # - command
