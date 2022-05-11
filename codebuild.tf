@@ -131,30 +131,33 @@ resource "aws_codebuild_project" "build" {
                   #build-matrix:
                   #build-graph:
                 phases:
-                  #install:
-                    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.
-                    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.
-                    #runtime-versions:
-                      # name: version
-                      # name: version
-                    #commands:
-                      # - command
-                      # - command
+                  install:
+                    commands:
+                      - echo Entering install phase...
+                      - wget https://jcenter.bintray.com/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz 
+                      - tar xzvf apache-maven-3.3.9-bin.tar.gz -C /opt/
+                      - export PATH=/opt/apache-maven-3.3.9/bin:$PATH
+                      - wget -qO - https://releases.jfrog.io/artifactory/jfrog-gpg-public/jfrog_public_gpg.key | sudo apt-key add -
+                      - echo "deb https://releases.jfrog.io/artifactory/jfrog-debs xenial contrib" | sudo tee -a /etc/apt/sources.list;
+                      - apt update;
+                      - apt install -y jfrog-cli-v2;
+                      - mvn -version
+                      - jfrog -version
                   pre_build:
                     commands:
                       - sudo su -
-                      - wget https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz 
-                      - tar zxf apache-maven-3.8.5-bin.tar.gz
-                      - cd apache-maven-3.8.5
-                      - cd bin
-                      - export M2_HOME=/opt/apache-maven-3.8.5
-                      - export M2=$M2_HOME/bin
-                      - export PATH=$PATH:$M2_HOME/bin
-                      - sudo apt update -y
-                      - sudo apt install openjdk-11-jdk -y
-                      - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 
-                      - export PATH=$PATH:$JAVA_HOME/bin
-                      - mvn -version
+                      # - wget https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz 
+                      # -tar zxf apache-maven-3.8.5-bin.tar.gz
+                      # -cd apache-maven-3.8.5
+                      # -cd bin
+                      # -export M2_HOME=/opt/apache-maven-3.8.5
+                      # -export M2=$M2_HOME/bin
+                      # -export PATH=$PATH:$M2_HOME/bin
+                      # -sudo apt update -y
+                      # -sudo apt install openjdk-11-jdk -y
+                      # -export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 
+                      # -export PATH=$PATH:$JAVA_HOME/bin
+                      # -mvn -version
                   build:
                     commands:
                       # - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
@@ -169,7 +172,8 @@ resource "aws_codebuild_project" "build" {
                       #     DIR=$(eval "echo \"\$$VAR\"");
                       #     ls $DIR;
                       #   done
-                      - jfrog c add --user admin --password password --url http://54.175.229.83:8081 --artifactory-url http://54.175.229.83:8081/artifactory --interactive false
+                      - echo configuring jfrog cli
+                      - jfrog config add --user admin --password password --url http://54.175.229.83:8081 --artifactory-url http://54.175.229.83:8081/artifactory --interactive=false
                       - jfrog rt ping --url=http://54.175.229.83:8081/artifactory
                       - mvn compile
                       - mvn package
