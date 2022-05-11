@@ -22,3 +22,15 @@ variable "codepipeline_name" {
 variable "github_token" {
   type = string
 }
+
+variable "JFROG_USER" {
+  type = string
+}
+
+variable "JFROG_PASS" {
+  type = string
+}
+
+variable "JFROG_URL" {
+  type = string
+}

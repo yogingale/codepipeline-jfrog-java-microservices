@@ -8,6 +8,10 @@ export AWS_REGION="us-east-1"
 
 export TF_VAR_github_token="github-token"  
 
+export TF_VAR_JFROG_USER=user
+export TF_VAR_JFROG_PASS=pass
+export TF_VAR_JFROG_URL=http://domain:port
+
 # Install
 
 - terraform init
