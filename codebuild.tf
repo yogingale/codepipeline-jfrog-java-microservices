@@ -107,6 +107,18 @@ resource "aws_codebuild_project" "build" {
       name  = "ONLY_SCAN"
       value = "true"
     }
+    environment_variable {
+      name  = "JFROG_USER"
+      value = var.JFROG_USER
+    }
+    environment_variable {
+      name  = "JFROG_PASS"
+      value = var.JFROG_PASS
+    }
+    environment_variable {
+      name  = "JFROG_URL"
+      value = var.JFROG_URL
+    }
   }
 
   logs_config {
@@ -131,44 +143,45 @@ resource "aws_codebuild_project" "build" {
                   #build-matrix:
                   #build-graph:
                 phases:
-                  #install:
-                    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.
-                    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.
-                    #runtime-versions:
-                      # name: version
-                      # name: version
-                    #commands:
-                      # - command
-                      # - command
+                  install:
+                    commands:
+                      - echo Entering install phase...
+                      - wget https://jcenter.bintray.com/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz 
+                      - tar xzvf apache-maven-3.3.9-bin.tar.gz -C /opt/
+                      - export PATH=/opt/apache-maven-3.3.9/bin:$PATH
+                      - wget -qO - https://releases.jfrog.io/artifactory/jfrog-gpg-public/jfrog_public_gpg.key | sudo apt-key add -
+                      - echo "deb https://releases.jfrog.io/artifactory/jfrog-debs xenial contrib" | sudo tee -a /etc/apt/sources.list;
+                      - apt update;
+                      - apt install -y jfrog-cli-v2;
                   pre_build:
                     commands:
                       - sudo su -
-                      - wget https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz 
-                      - tar zxf apache-maven-3.8.5-bin.tar.gz
-                      - cd apache-maven-3.8.5
-                      - cd bin
-                      - export M2_HOME=/opt/apache-maven-3.8.5
-                      - export M2=$M2_HOME/bin
-                      - export PATH=$PATH:$M2_HOME/bin
-                      - sudo apt update -y
-                      - sudo apt install openjdk-11-jdk -y
-                      - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 
-                      - export PATH=$PATH:$JAVA_HOME/bin
                       - mvn -version
+                      - jfrog -version
                   build:
                     commands:
-                      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
-                      - unzip sonar-scanner-cli-3.3.0.1492-linux.zip
-                      - export PATH=$PATH:./sonar-scanner-3.3.0.1492-linux/bin/
-                      - echo "scan command here" 
-                      - cd ../..
-                      - mvn clean verify sonar:sonar -Dsonar.projectKey=ebuka-project-key -Dsonar.host.url=http://3.85.193.21:9000 -Dsonar.login=1458a3c2b1d119b0c86dfd947ffd197497c2f120
-                      - echo "more commands"
-                      - for dir in ${join(" ",[for v in var.actions:  v.slug ])}; do
-                          VAR=CODEBUILD_SRC_DIR_$dir;
-                          DIR=$(eval "echo \"\$$VAR\"");
-                          ls $DIR;
-                        done
+                      # - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
+                      # - unzip sonar-scanner-cli-3.3.0.1492-linux.zip
+                      # - export PATH=$PATH:./sonar-scanner-3.3.0.1492-linux/bin/
+                      # - echo "scan command here"
+                      # - cd ../..
+                      # - mvn clean verify sonar:sonar -Dsonar.projectKey=ebuka-project-key -Dsonar.host.url=http://3.85.193.21:9000 -Dsonar.login=1458a3c2b1d119b0c86dfd947ffd197497c2f120
+
+                      - echo Configuring jfrog cli
+                      - jfrog config add --user $JFROG_USER --password $JFROG_PASS --url $JFROG_URL --artifactory-url $JFROG_URL/artifactory --interactive=false
+                      - jfrog rt ping --url=$JFROG_URL/artifactory
+
+                      - echo Maven compile and package
+                      - mvn compile
+                      - mvn package
+
+                      - echo jfrog registry upload
+                      - jfrog rt upload "*.jar" libs-release-local --build-name=java-microservices --build-number=$CODEBUILD_BUILD_ID
+                      - echo Collect environment variables for the build
+                      - jfrog rt bce java-microservices $CODEBUILD_BUILD_ID
+                      - echo Publish build info
+                      - jfrog rt bp java-microservices $CODEBUILD_BUILD_ID
+
                   #post_build:
                     #commands:
                       # - command

@@ -215,3 +215,5 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/terraform,macos,windows,linux,terragrunt,vim,jetbrains+all
 planfile
+
+.env
