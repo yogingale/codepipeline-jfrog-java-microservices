@@ -12,20 +12,23 @@ env = "dev"
 # List of repositories.
 # repo is the repo name together with the user or organisation name
 # slug is a short name to be used along with CodePipeline
-actions = [
-  {
-    repo        = "yogingale/java-microservice-api-gateway",
+actions = {
+  ms1 : {
+    owner       = "yogingale"
+    repo        = "java-microservice-api-gateway",
     slug        = "microservice1",
     main_branch = "main"
   },
-  {
-    repo        = "yogingale/java-microservice-car-service",
+  ms2 : {
+    owner       = "yogingale"
+    repo        = "java-microservice-car-service",
     slug        = "microservice2",
     main_branch = "main"
   },
-  {
-    repo        = "yogingale/java-microservice-discovery-service",
+  ms3 : {
+    owner       = "yogingale"
+    repo        = "java-microservice-discovery-service",
     slug        = "microservice3",
     main_branch = "main"
   }
-]
+}

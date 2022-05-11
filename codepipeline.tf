@@ -16,16 +16,17 @@ resource "aws_codepipeline" "codepipeline" {
       content {
         name             = action.value.slug
         category         = "Source"
-        owner            = "AWS"
-        provider         = "CodeStarSourceConnection"
+        owner            = "ThirdParty"
+        provider         = "GitHub"
         version          = "1"
         output_artifacts = ["${action.value.slug}_artifact"]
 
         configuration = {
-          ConnectionArn        = aws_codestarconnections_connection.github_connection.arn # var.codestar_connection_arn
-          FullRepositoryId     = action.value.repo
-          OutputArtifactFormat = "CODE_ZIP"
-          BranchName           = action.value.main_branch
+          OAuthToken           = var.github_token
+          Owner                = action.value.owner
+          Repo                 = action.value.repo
+          Branch               = "main"
+          PollForSourceChanges = "false"
         }
       }
     }
@@ -48,16 +49,41 @@ resource "aws_codepipeline" "codepipeline" {
         # CombineArtifacts = "true"
         BatchEnabled     = "false"
         ProjectName      = var.codebuild_project_name
-        PrimarySource    = "${var.actions[0].slug}_artifact"
+        PrimarySource    = "microservice1_artifact"
       }
     }
   }
 
 }
 
-resource "aws_codestarconnections_connection" "github_connection" {
-  name          = "github-connection"
-  provider_type = "GitHub"
+resource "aws_codepipeline_webhook" "webhook" {
+    for_each = var.actions
+      name            = "${each.value.slug}-webhook-github"
+      authentication  = "GITHUB_HMAC"
+      target_action   = "Source"
+      target_pipeline = aws_codepipeline.codepipeline.name
+
+      authentication_configuration {
+        secret_token = var.github_token
+      }
+
+      filter {
+        json_path    = "$.ref"
+        match_equals = "refs/heads/main"
+      }
+}
+
+resource "github_repository_webhook" "webhook" {
+  for_each = var.actions
+    repository = each.value.repo
+    configuration {
+      url          = aws_codepipeline_webhook.webhook[each.key].url
+      content_type = "json"
+      insecure_ssl = false
+      secret       = var.github_token
+    }
+
+    events = ["push"]
 }
 
 resource "aws_s3_bucket" "codepipeline_bucket" {
